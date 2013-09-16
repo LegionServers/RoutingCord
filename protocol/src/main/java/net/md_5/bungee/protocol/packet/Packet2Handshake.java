@@ -12,9 +12,6 @@ public class Packet2Handshake extends DefinedPacket
 {
 
     private byte procolVersion;
-    private String username;
-    private String host;
-    private int port;
 
     private Packet2Handshake()
     {
@@ -25,18 +22,12 @@ public class Packet2Handshake extends DefinedPacket
     public void read(ByteBuf buf)
     {
         procolVersion = buf.readByte();
-        username = readString( buf );
-        host = readString( buf );
-        port = buf.readInt();
     }
 
     @Override
     public void write(ByteBuf buf)
     {
         buf.writeByte( procolVersion );
-        writeString( username, buf );
-        writeString( host, buf );
-        buf.writeInt( port );
     }
 
     @Override

@@ -21,14 +21,4 @@ public class CaseInsensitiveTest
         Assert.assertFalse( map.contains( "foo" ) );
     }
 
-    @Test
-    public void testSets()
-    {
-        CaseInsensitiveSet set = new CaseInsensitiveSet();
-
-        set.add( "FOO" );
-        Assert.assertTrue( set.contains( "foo" ) ); // Assert that contains is case insensitive
-        set.remove( "FoO" );
-        Assert.assertFalse( set.contains( "foo" ) ); // Assert that remove is case insensitive
-    }
 }

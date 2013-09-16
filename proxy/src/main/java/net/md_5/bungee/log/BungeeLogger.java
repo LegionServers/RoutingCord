@@ -10,7 +10,6 @@ import net.md_5.bungee.BungeeCord;
 public class BungeeLogger extends Logger
 {
 
-    private final BungeeCord bungee;
     private final ColouredWriter writer;
     private final Formatter formatter = new ConciseFormatter();
     private final LogDispatcher dispatcher = new LogDispatcher( this );
@@ -18,7 +17,6 @@ public class BungeeLogger extends Logger
     public BungeeLogger(BungeeCord bungee)
     {
         super( "BungeeCord", null );
-        this.bungee = bungee;
         this.writer = new ColouredWriter( bungee.getConsoleReader() );
 
         try

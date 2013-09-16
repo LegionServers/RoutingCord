@@ -14,34 +14,21 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Level;
-import lombok.RequiredArgsConstructor;
+
 import net.md_5.bungee.Util;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ConfigurationAdapter;
 import net.md_5.bungee.api.config.ListenerInfo;
 import net.md_5.bungee.api.config.ServerInfo;
-import net.md_5.bungee.api.tab.TabListHandler;
-import net.md_5.bungee.tab.Global;
-import net.md_5.bungee.tab.GlobalPing;
-import net.md_5.bungee.tab.ServerUnique;
 import net.md_5.bungee.util.CaseInsensitiveMap;
+
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
 public class YamlConfig implements ConfigurationAdapter
 {
 
-    /**
-     * The default tab list options available for picking.
-     */
-    @RequiredArgsConstructor
-    private enum DefaultTabList
-    {
-
-        GLOBAL( Global.class ), GLOBAL_PING( GlobalPing.class ), SERVER( ServerUnique.class );
-        private final Class<? extends TabListHandler> clazz;
-    }
     private Yaml yaml;
     private Map config;
     private final File file = new File( "config.yml" );
@@ -160,20 +147,18 @@ public class YamlConfig implements ConfigurationAdapter
 
     @Override
     @SuppressWarnings("unchecked")
-    public Map<String, ServerInfo> getServers()
+    public Map<Integer, ServerInfo> getServers()
     {
-        Map<String, Map<String, Object>> base = get( "servers", (Map) Collections.singletonMap( "lobby", new HashMap<>() ) );
-        Map<String, ServerInfo> ret = new HashMap<>();
+        Map<Integer, Map<String, Object>> base = get( "servers", (Map) Collections.singletonMap( "lobby", new HashMap<>() ) );
+        Map<Integer, ServerInfo> ret = new HashMap<>();
 
-        for ( Map.Entry<String, Map<String, Object>> entry : base.entrySet() )
+        for ( Map.Entry<Integer, Map<String, Object>> entry : base.entrySet() )
         {
             Map<String, Object> val = entry.getValue();
-            String name = entry.getKey();
+            Integer name = entry.getKey();
             String addr = get( "address", "localhost:25565", val );
-            String motd = ChatColor.translateAlternateColorCodes( '&', get( "motd", "&1Just another BungeeCord - Forced Host", val ) );
-            boolean restricted = get( "restricted", false, val );
             InetSocketAddress address = Util.getAddr( addr );
-            ServerInfo info = ProxyServer.getInstance().constructServerInfo( name, address, motd, restricted );
+            ServerInfo info = ProxyServer.getInstance().constructServerInfo( name, address );
             ret.put( name, info );
         }
 
@@ -195,26 +180,12 @@ public class YamlConfig implements ConfigurationAdapter
 
         for ( Map<String, Object> val : base )
         {
-            String motd = get( "motd", "&1Another Bungee server", val );
-            motd = ChatColor.translateAlternateColorCodes( '&', motd );
-
-            int maxPlayers = get( "max_players", 1, val );
-            String defaultServer = get( "default_server", "lobby", val );
-            String fallbackServer = get( "fallback_server", defaultServer, val );
-            boolean forceDefault = get( "force_default_server", false, val );
+            Integer defaultServer = get( "default_server", 74, val );
             String host = get( "host", "0.0.0.0:25577", val );
-            int tabListSize = get( "tab_size", 60, val );
             InetSocketAddress address = Util.getAddr( host );
-            Map<String, String> forced = new CaseInsensitiveMap<>( get( "forced_hosts", forcedDef, val ) );
-            String tabListName = get( "tab_list", "GLOBAL_PING", val );
-            DefaultTabList value = DefaultTabList.valueOf( tabListName.toUpperCase() );
-            if ( value == null )
-            {
-                value = DefaultTabList.GLOBAL_PING;
-            }
             boolean setLocalAddress = get( "bind_local_address", true, val );
 
-            ListenerInfo info = new ListenerInfo( address, motd, maxPlayers, tabListSize, defaultServer, fallbackServer, forceDefault, forced, value.clazz, setLocalAddress );
+            ListenerInfo info = new ListenerInfo( address, defaultServer, setLocalAddress );
             ret.add( info );
         }
 

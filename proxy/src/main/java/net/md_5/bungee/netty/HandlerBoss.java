@@ -1,15 +1,16 @@
 package net.md_5.bungee.netty;
 
-import com.google.common.base.Preconditions;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.timeout.ReadTimeoutException;
+
 import java.io.IOException;
 import java.util.logging.Level;
+
 import net.md_5.bungee.api.ProxyServer;
-import net.md_5.bungee.connection.CancelSendSignal;
 import net.md_5.bungee.connection.InitialHandler;
-import net.md_5.bungee.connection.PingHandler;
+
+import com.google.common.base.Preconditions;
 
 /**
  * This class is a primitive wrapper for {@link PacketHandler} instances tied to
@@ -36,7 +37,7 @@ public class HandlerBoss extends ChannelInboundHandlerAdapter
             channel = new ChannelWrapper( ctx );
             handler.connected( channel );
 
-            if ( !( handler instanceof InitialHandler || handler instanceof PingHandler ) )
+            if ( !( handler instanceof InitialHandler ) )
             {
                 ProxyServer.getInstance().getLogger().log( Level.INFO, "{0} has connected", handler );
             }
@@ -50,7 +51,7 @@ public class HandlerBoss extends ChannelInboundHandlerAdapter
         {
             handler.disconnected( channel );
 
-            if ( !( handler instanceof InitialHandler || handler instanceof PingHandler ) )
+            if ( !( handler instanceof InitialHandler ) )
             {
                 ProxyServer.getInstance().getLogger().log( Level.INFO, "{0} has disconnected", handler );
             }
@@ -63,23 +64,13 @@ public class HandlerBoss extends ChannelInboundHandlerAdapter
         if ( handler != null )
         {
             PacketWrapper packet = (PacketWrapper) msg;
-            boolean sendPacket = true;
             try
             {
                 if ( packet.packet != null )
                 {
-                    try
-                    {
-                        packet.packet.handle( handler );
-                    } catch ( CancelSendSignal ex )
-                    {
-                        sendPacket = false;
-                    }
+                    packet.packet.handle( handler );
                 }
-                if ( sendPacket )
-                {
-                    handler.handle( packet );
-                }
+                handler.handle( packet );
             } finally
             {
                 packet.trySingleRelease();
@@ -95,6 +86,7 @@ public class HandlerBoss extends ChannelInboundHandlerAdapter
             if ( cause instanceof ReadTimeoutException )
             {
                 ProxyServer.getInstance().getLogger().log( Level.WARNING, handler + " - read timed out" );
+                cause.printStackTrace();
             } else if ( cause instanceof IOException )
             {
                 ProxyServer.getInstance().getLogger().log( Level.WARNING, handler + " - IOException: " + cause.getMessage() );

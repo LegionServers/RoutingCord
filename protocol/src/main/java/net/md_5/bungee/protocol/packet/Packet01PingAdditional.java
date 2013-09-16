@@ -6,26 +6,14 @@ import lombok.ToString;
 
 @ToString
 @EqualsAndHashCode(callSuper = false)
-public class PacketFEPing extends DefinedPacket
+public class Packet01PingAdditional extends DefinedPacket
 {
 
-    //private byte version;
+    private byte version;
 
-    private PacketFEPing()
+    private Packet01PingAdditional()
     {
-        super( 0xFE );
-    }
-
-    @Override
-    public void read(ByteBuf buf)
-    {
-        //version = buf.readByte();
-    }
-
-    @Override
-    public void write(ByteBuf buf)
-    {
-        //buf.writeByte( version );
+        super( 0x01 );
     }
 
     @Override
@@ -33,4 +21,10 @@ public class PacketFEPing extends DefinedPacket
     {
         handler.handle( this );
     }
+
+	@Override
+	public void read(ByteBuf buf) {}
+
+	@Override
+	public void write(ByteBuf buf) {}
 }

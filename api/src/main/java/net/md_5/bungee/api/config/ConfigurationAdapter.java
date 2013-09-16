@@ -57,7 +57,7 @@ public interface ConfigurationAdapter
      *
      * @return all accessible servers, keyed by name
      */
-    public Map<String, ServerInfo> getServers();
+    public Map<Integer, ServerInfo> getServers();
 
     /**
      * Get information about all hosts to bind the proxy to.

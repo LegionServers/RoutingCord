@@ -3,13 +3,14 @@ package net.md_5.bungee.netty;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ReplayingDecoder;
+
 import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import net.md_5.bungee.protocol.Protocol;
 import net.md_5.bungee.protocol.packet.DefinedPacket;
-import net.md_5.bungee.protocol.skip.PacketReader;
 
 /**
  * This class will attempt to read a packet from {@link PacketReader}, with the
@@ -26,6 +27,10 @@ public class PacketDecoder extends ReplayingDecoder<Void>
     @Getter
     @Setter
     private Protocol protocol;
+    
+    @Getter
+    @Setter
+    private boolean parsePackets = true;
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception
@@ -36,7 +41,10 @@ public class PacketDecoder extends ReplayingDecoder<Void>
             // Store our start index
             int startIndex = in.readerIndex();
             // Run packet through framer
-            DefinedPacket packet = protocol.read( in.readUnsignedByte(), in );
+            short packetId = in.readUnsignedByte();
+            DefinedPacket packet = protocol.read( packetId, in, parsePackets );
+            if (packetId == 2)
+            	parsePackets = false;
             // If we got this far, it means we have formed a packet, so lets grab the end index
             int endIndex = in.readerIndex();
             // Allocate a buffer big enough for all bytes we have read

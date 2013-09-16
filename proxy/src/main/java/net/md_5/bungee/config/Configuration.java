@@ -1,21 +1,16 @@
 package net.md_5.bungee.config;
 
-import com.google.common.base.Preconditions;
-import gnu.trove.map.TMap;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
+
 import lombok.Getter;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ConfigurationAdapter;
 import net.md_5.bungee.api.config.ListenerInfo;
 import net.md_5.bungee.api.config.ServerInfo;
-import net.md_5.bungee.tab.GlobalPing;
-import net.md_5.bungee.tab.Global;
-import net.md_5.bungee.tab.ServerUnique;
-import net.md_5.bungee.util.CaseInsensitiveMap;
-import net.md_5.bungee.util.CaseInsensitiveSet;
+
+import com.google.common.base.Preconditions;
 
 /**
  * Core configuration for the proxy.
@@ -29,23 +24,13 @@ public class Configuration
      */
     private int timeout = 30000;
     /**
-     * UUID used for metrics.
-     */
-    private String uuid = UUID.randomUUID().toString();
-    /**
      * Set of all listeners.
      */
     private Collection<ListenerInfo> listeners;
     /**
      * Set of all servers.
      */
-    private TMap<String, ServerInfo> servers;
-    /**
-     * Should we check minecraft.net auth.
-     */
-    private boolean onlineMode = true;
-    private int playerLimit = -1;
-    private Collection<String> disabledCommands;
+    private Map<Integer, ServerInfo> servers;
     private int throttle = 4000;
 
     public void load()
@@ -55,43 +40,18 @@ public class Configuration
 
         listeners = adapter.getListeners();
         timeout = adapter.getInt( "timeout", timeout );
-        uuid = adapter.getString( "stats", uuid );
-        onlineMode = adapter.getBoolean( "online_mode", onlineMode );
-        playerLimit = adapter.getInt( "player_limit", playerLimit );
         throttle = adapter.getInt( "connection_throttle", throttle );
-
-        disabledCommands = new CaseInsensitiveSet( (Collection<String>) adapter.getList( "disabled_commands", Arrays.asList( "find" ) ) );
 
         Preconditions.checkArgument( listeners != null && !listeners.isEmpty(), "No listeners defined." );
 
-        Map<String, ServerInfo> newServers = adapter.getServers();
+        Map<Integer, ServerInfo> newServers = adapter.getServers();
         Preconditions.checkArgument( newServers != null && !newServers.isEmpty(), "No servers defined" );
 
-        if ( servers == null )
-        {
-            servers = new CaseInsensitiveMap<>( newServers );
-        } else
-        {
-            for ( ServerInfo oldServer : servers.values() )
-            {
-                // Don't allow servers to be removed
-                Preconditions.checkArgument( newServers.containsValue( oldServer ), "Server %s removed on reload!", oldServer.getName() );
-            }
-
-            // Add new servers
-            for ( Map.Entry<String, ServerInfo> newServer : newServers.entrySet() )
-            {
-                if ( !servers.containsValue( newServer.getValue() ) )
-                {
-                    servers.put( newServer.getKey(), newServer.getValue() );
-                }
-            }
-        }
+        servers = new HashMap<>( newServers );
 
         for ( ListenerInfo listener : listeners )
         {
             Preconditions.checkArgument( servers.containsKey( listener.getDefaultServer() ), "Default server %s is not defined", listener.getDefaultServer() );
-            Preconditions.checkArgument( servers.containsKey( listener.getFallbackServer() ), "Fallback server %s is not defined", listener.getFallbackServer() );
         }
     }
 }
