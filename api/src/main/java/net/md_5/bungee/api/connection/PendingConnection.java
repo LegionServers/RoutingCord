@@ -13,7 +13,7 @@ public interface PendingConnection extends Connection
      *
      * @return the protocol version of the remote client
      */
-    public byte getVersion();
+    public long getVersion();
 
     /**
      * Get the listener that accepted this connection.

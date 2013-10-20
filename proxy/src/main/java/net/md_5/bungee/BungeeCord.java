@@ -10,6 +10,9 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.ResourceLeakDetector;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.InetSocketAddress;
@@ -31,6 +34,7 @@ import net.md_5.bungee.api.config.ConfigurationAdapter;
 import net.md_5.bungee.api.config.ListenerInfo;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.command.CommandEnd;
+import net.md_5.bungee.command.CommandGraceful;
 import net.md_5.bungee.command.CommandReload;
 import net.md_5.bungee.command.ConsoleCommandSender;
 import net.md_5.bungee.config.Configuration;
@@ -75,6 +79,9 @@ public class BungeeCord extends ProxyServer
     public final Gson gson = new Gson();
     @Getter
     private ConnectionThrottle connectionThrottle;
+    @Getter
+    @Setter
+    private static boolean exitWhenEmpty = false;
 
     public static BungeeCord getInstance()
     {
@@ -111,20 +118,26 @@ public class BungeeCord extends ProxyServer
         bungee.getLogger().info( "Enabled BungeeCord version " + bungee.getVersion() );
         bungee.start();
 
+        File commands = new File( ".command" );
         while ( bungee.isRunning )
         {
-            String line = bungee.getConsoleReader().readLine( ">" );
-            if ( line != null )
-            {
-            	if( line.trim().equalsIgnoreCase( "end" ) )
-            		new CommandEnd().execute(ConsoleCommandSender.getInstance(), new String[] {});
-            	else if( line.trim().equalsIgnoreCase( "reload" ) )
-            		new CommandReload().execute(ConsoleCommandSender.getInstance(), new String[] {});
-                /*if ( !bungee.getPluginManager().dispatchCommand( ConsoleCommandSender.getInstance(), line ) )
-                {
-                    bungee.getConsole().sendMessage( ChatColor.RED + "Command not found" );
-                }*/
-            }
+        	Thread.sleep(1000);
+        	if( commands.exists() )
+        	{
+        		BufferedReader br = new BufferedReader( new FileReader( commands ) );
+	            String line;
+	            while ( ( line = br.readLine() ) != null )
+	            {
+	            	if( line.trim().equalsIgnoreCase( "end" ) )
+	            		new CommandEnd().execute(ConsoleCommandSender.getInstance(), new String[] {});
+	            	else if( line.trim().equalsIgnoreCase( "reload" ) )
+	            		new CommandReload().execute(ConsoleCommandSender.getInstance(), new String[] {});
+	            	else if( line.trim().equalsIgnoreCase( "graceful" ) )
+	            		new CommandGraceful().execute(ConsoleCommandSender.getInstance(), new String[] {});
+	            }
+	            br.close();
+	            commands.delete();
+        	}
         }
     }
 

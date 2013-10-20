@@ -28,8 +28,10 @@ public class PipelineUtils
         @Override
         protected void initChannel(Channel ch) throws Exception
         {
+        	System.out.println("Connect: " + ( (InetSocketAddress) ch.remoteAddress() ).getAddress());
             if ( BungeeCord.getInstance().getConnectionThrottle().throttle( ( (InetSocketAddress) ch.remoteAddress() ).getAddress() ) )
             {
+            	System.out.println("Throttled: " + ( (InetSocketAddress) ch.remoteAddress() ).getAddress());
                 ch.close();
                 return;
             }
@@ -38,6 +40,7 @@ public class PipelineUtils
             ch.pipeline().get( HandlerBoss.class ).setHandler( new InitialHandler( ProxyServer.getInstance(), ch.attr( LISTENER ).get() ) );
         }
     };
+    /*
     public static final ChannelInitializer<Channel> CLIENT = new ChannelInitializer<Channel>()
     {
         @Override
@@ -47,6 +50,7 @@ public class PipelineUtils
             ch.pipeline().get( HandlerBoss.class ).setHandler( new ServerConnector( ProxyServer.getInstance(), ch.attr( USER ).get(), ch.attr( TARGET ).get() ) );
         }
     };
+    */
     public static final Base BASE = new Base();
     private static final DefinedPacketEncoder packetEncoder = new DefinedPacketEncoder();
     public static String TIMEOUT_HANDLER = "timeout";
@@ -71,7 +75,7 @@ public class PipelineUtils
             }
 
             ch.pipeline().addLast( TIMEOUT_HANDLER, new ReadTimeoutHandler( BungeeCord.getInstance().config.getTimeout(), TimeUnit.MILLISECONDS ) );
-            ch.pipeline().addLast( PACKET_DECODE_HANDLER, new PacketDecoder( Vanilla.getInstance(), true ) );
+            ch.pipeline().addLast( PACKET_DECODE_HANDLER, new PacketDecoder( Vanilla.getInstance(), true, true ) );
             ch.pipeline().addLast( PACKET_ENCODE_HANDLER, packetEncoder );
             ch.pipeline().addLast( BOSS_HANDLER, new HandlerBoss() );
         }

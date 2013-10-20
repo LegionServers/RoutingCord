@@ -8,6 +8,7 @@ import java.lang.reflect.InvocationTargetException;
 import lombok.Getter;
 import net.md_5.bungee.protocol.packet.DefinedPacket;
 import net.md_5.bungee.protocol.packet.Packet01PingAdditional;
+import net.md_5.bungee.protocol.packet.Packet0NewHandshake;
 import net.md_5.bungee.protocol.packet.Packet2Handshake;
 import net.md_5.bungee.protocol.packet.PacketFAPluginMessage;
 import net.md_5.bungee.protocol.packet.PacketFEPing;
@@ -39,10 +40,10 @@ public class Vanilla implements Protocol
     }
 
     @Override
-    public DefinedPacket read(short packetId, ByteBuf buf, boolean parsePackets)
+    public DefinedPacket read(short packetId, ByteBuf buf, boolean parsePackets, boolean firstPacket)
     {
         int start = buf.readerIndex();
-        DefinedPacket packet = read( packetId, buf, this, parsePackets );
+        DefinedPacket packet = read( packetId, buf, this, parsePackets, firstPacket );
         if ( buf.readerIndex() == start )
         {
             //throw new RuntimeException( "Unknown packet id " + packetId );
@@ -50,7 +51,7 @@ public class Vanilla implements Protocol
         return packet;
     }
 
-    public static DefinedPacket read(short id, ByteBuf buf, Protocol protocol, boolean parsePackets)
+    public static DefinedPacket read(short id, ByteBuf buf, Protocol protocol, boolean parsePackets, boolean firstPacket)
     {
     	if (parsePackets) {
 	        DefinedPacket packet = packet( id, protocol );
@@ -58,6 +59,15 @@ public class Vanilla implements Protocol
 	        {
 	            packet.read( buf );
 	            return packet;
+	        } else if ( firstPacket )
+	        {
+	        	buf.readerIndex(buf.readerIndex() - 1);
+	        	packet = new Packet0NewHandshake();
+	        	packet.read( buf );
+	        	return packet;
+	        } else
+	        {
+	        	throw new RuntimeException( "Unknown packet id " + id );
 	        }
     	}
     	if (buf.readableBytes() > 0)

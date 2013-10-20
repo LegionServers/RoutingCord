@@ -70,17 +70,17 @@ public final class UserConnection implements ProxiedPlayer
     }
 
     @Override
-    public void connect(ServerInfo target)
+    public void connect(ServerInfo target, long protocolVersion)
     {
-        connect( target, false );
+        connect( target, protocolVersion, false );
     }
 
-    public void connectNow(ServerInfo target)
+    public void connectNow(ServerInfo target, long protocolVersion)
     {
-        connect( target );
+        connect( target, protocolVersion );
     }
 
-    public void connect(ServerInfo info, final boolean retry)
+    public void connect(ServerInfo info, final long protocolVersion, final boolean retry)
     {
         final BungeeServerInfo target = (BungeeServerInfo) info;
 
@@ -90,7 +90,7 @@ public final class UserConnection implements ProxiedPlayer
             protected void initChannel(Channel ch) throws Exception
             {
                 PipelineUtils.BASE.initChannel( ch );
-                ch.pipeline().get( HandlerBoss.class ).setHandler( new ServerConnector( bungee, UserConnection.this, target ) );
+                ch.pipeline().get( HandlerBoss.class ).setHandler( new ServerConnector( bungee, UserConnection.this, target, protocolVersion ) );
             }
         };
         ChannelFutureListener listener = new ChannelFutureListener()
@@ -125,7 +125,7 @@ public final class UserConnection implements ProxiedPlayer
         if ( ch.getHandle().isActive() )
         {
             bungee.getLogger().log( Level.INFO, "[" + toString() + "] disconnected with: " + reason );
-            unsafe().sendPacket( new PacketFFKick( reason ) );
+            //unsafe().sendPacket( new PacketFFKick( reason ) );
             ch.close();
             if ( server != null )
             {

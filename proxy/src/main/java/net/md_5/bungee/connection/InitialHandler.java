@@ -26,6 +26,7 @@ import net.md_5.bungee.netty.PacketWrapper;
 import net.md_5.bungee.protocol.MinecraftInput;
 import net.md_5.bungee.protocol.packet.DefinedPacket;
 import net.md_5.bungee.protocol.packet.Packet01PingAdditional;
+import net.md_5.bungee.protocol.packet.Packet0NewHandshake;
 import net.md_5.bungee.protocol.packet.Packet2Handshake;
 import net.md_5.bungee.protocol.packet.PacketFAPluginMessage;
 import net.md_5.bungee.protocol.packet.PacketFEPing;
@@ -56,7 +57,7 @@ public class InitialHandler extends PacketHandler implements PendingConnection
     };
     private ScheduledFuture<?> pingFuture1;
     private ScheduledFuture<?> pingFuture2;
-    private byte version = -1;
+    private long version = -1;
 
     private enum State
     {
@@ -124,6 +125,21 @@ public class InitialHandler extends PacketHandler implements PendingConnection
     }
     
     @Override
+    public void handle(Packet0NewHandshake newHandshake) throws Exception
+    {
+    	packets.add( newHandshake );
+        version = 100 + newHandshake.getProtocolVersion();
+        try {
+        	BungeeCord.getInstance().getConnectionThrottle().unthrottle( getAddress().getAddress() );
+        	finish();
+        } catch ( Throwable t )
+        {
+        	t.printStackTrace();
+        }
+    }
+
+    
+    @Override
     public void handle(PacketWrapper packet) throws Exception
     {
     	if(packet.packet != null)
@@ -188,7 +204,7 @@ public class InitialHandler extends PacketHandler implements PendingConnection
                     ServerInfo server = bungee.getConfigurationAdapter().getServers().get( (int) getVersion() );
                     if (server == null)
                     	server = bungee.getConfigurationAdapter().getServers().get( listener.getDefaultServer() );
-                    userCon.connect( server, true );
+                    userCon.connect( server, getVersion(), true );
                     thisState = State.FINISHED;
                 }
             }
@@ -206,7 +222,7 @@ public class InitialHandler extends PacketHandler implements PendingConnection
     }
 
     @Override
-    public byte getVersion()
+    public long getVersion()
     {
         return ( handshake == null ) ? version : handshake.getProcolVersion();
     }

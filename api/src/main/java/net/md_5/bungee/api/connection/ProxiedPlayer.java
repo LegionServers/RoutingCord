@@ -16,7 +16,7 @@ public interface ProxiedPlayer extends Connection
      *
      * @param target the new server to connect to
      */
-    void connect(ServerInfo target);
+    void connect(ServerInfo target, long protocolVersion);
 
     /**
      * Gets the server this player is connected to.

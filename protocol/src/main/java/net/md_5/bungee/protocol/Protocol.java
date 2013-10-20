@@ -7,7 +7,7 @@ import net.md_5.bungee.protocol.packet.DefinedPacket;
 public interface Protocol
 {
 
-    DefinedPacket read(short packetId, ByteBuf buf, boolean parsePackets);
+    DefinedPacket read(short packetId, ByteBuf buf, boolean parsePackets, boolean firstPacket);
 
     Class<? extends DefinedPacket>[] getClasses();
 

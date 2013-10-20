@@ -43,15 +43,16 @@ public class ServerConnection implements Server
         if ( !ch.isClosed() )
         {
             // TODO: Can we just use a future here?
-            unsafe().sendPacket( new PacketFFKick( reason ) );
-            ch.getHandle().eventLoop().schedule( new Runnable()
+            //unsafe().sendPacket( new PacketFFKick( reason ) );
+        	ch.getHandle().close();
+            /*ch.getHandle().eventLoop().schedule( new Runnable()
             {
                 @Override
                 public void run()
                 {
                     ch.getHandle().close();
                 }
-            }, 100, TimeUnit.MILLISECONDS );
+            }, 100, TimeUnit.MILLISECONDS );*/
         }
     }
 

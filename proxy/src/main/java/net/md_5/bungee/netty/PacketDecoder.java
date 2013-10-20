@@ -11,6 +11,7 @@ import lombok.Getter;
 import lombok.Setter;
 import net.md_5.bungee.protocol.Protocol;
 import net.md_5.bungee.protocol.packet.DefinedPacket;
+import net.md_5.bungee.protocol.packet.Packet0NewHandshake;
 
 /**
  * This class will attempt to read a packet from {@link PacketReader}, with the
@@ -31,6 +32,8 @@ public class PacketDecoder extends ReplayingDecoder<Void>
     @Getter
     @Setter
     private boolean parsePackets = true;
+    
+    private boolean firstPacket = true;
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception
@@ -42,8 +45,10 @@ public class PacketDecoder extends ReplayingDecoder<Void>
             int startIndex = in.readerIndex();
             // Run packet through framer
             short packetId = in.readUnsignedByte();
-            DefinedPacket packet = protocol.read( packetId, in, parsePackets );
-            if (packetId == 2)
+            DefinedPacket packet = protocol.read( packetId, in, parsePackets, firstPacket );
+            if ( packetId == 2 )
+            	parsePackets = false;
+            if ( firstPacket && packet instanceof Packet0NewHandshake )
             	parsePackets = false;
             // If we got this far, it means we have formed a packet, so lets grab the end index
             int endIndex = in.readerIndex();
@@ -53,6 +58,10 @@ public class PacketDecoder extends ReplayingDecoder<Void>
             checkpoint();
             // Store our decoded message
             out.add( new PacketWrapper( packet, buf ) );
+            if ( firstPacket )
+            {
+            	firstPacket = false;
+            }
         }
     }
 }
